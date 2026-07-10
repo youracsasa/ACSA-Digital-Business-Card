@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACSA Digital Business Card Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #122a4c;
+    --gold: #f2b32a;
+    --ink: #1f2937;
+    --line: #d8dee8;
+    --bg: #f4f6f9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Montserrat, Arial, sans-serif;
+  }
+  header {
+    background: var(--navy);
+    color: #fff;
+    padding: 18px 28px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  header p {
+    margin: 5px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    opacity: .85;
+  }
+  main {
+    display: grid;
+    grid-template-columns: minmax(300px, 420px) minmax(300px, 1fr);
+    gap: 28px;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 28px;
+  }
+  .panel {
+    background: #fff;
+    border: 1px solid #e5eaf1;
+    border-radius: 8px;
+    padding: 22px;
+    box-shadow: 0 2px 8px rgba(18, 42, 76, .06);
+  }
+  label {
+    display: block;
+    margin: 14px 0 5px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  input[type="text"], input[type="email"] {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+  }
+  input:focus {
+    outline: 2px solid rgba(242, 179, 42, .65);
+    border-color: var(--gold);
+  }
+  button {
+    min-height: 44px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  #generateBtn {
+    width: 100%;
+    margin-top: 22px;
+    background: var(--navy);
+    color: #fff;
+  }
+  .downloads {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .downloads button {
+    background: var(--gold);
+    color: var(--navy);
+  }
+  button:disabled {
+    cursor: not-allowed;
+    opacity: .42;
+  }
+  .template-box {
+    margin-top: 20px;
+    border-top: 1px solid #edf1f5;
+    padding-top: 18px;
+  }
+  .template-box p {
+    margin: 0 0 10px;
+    color: #526173;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .preview {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  #cardCanvas {
+    width: min(335px, 100%);
+    aspect-ratio: 450 / 800;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 7px 22px rgba(18, 42, 76, .22);
+  }
+  @media (max-width: 820px) {
+    main { grid-template-columns: 1fr; padding: 18px; }
+    header { padding: 16px 18px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>ACSA Digital Business Card Generator</h1>
+  <p>Enter staff details, generate the scan-to-save QR code and download a Canva-aligned card as PNG or PDF.</p>
+</header>
+
+<main>
+  <form class="panel" onsubmit="event.preventDefault(); generate();">
+    <label for="first">First name</label>
+    <input type="text" id="first" required value="Normel">
+
+    <label for="last">Last name</label>
+    <input type="text" id="last" required value="Martinez">
+
+    <label for="title">Job title</label>
+    <input type="text" id="title" required value="Corporate Communications Manager">
+
+    <label for="phone">Phone number</label>
+    <input type="text" id="phone" required value="780-453-3311 ext.1914">
+
+    <label for="email">Email address</label>
+    <input type="email" id="email" required value="nmartinez@youracsa.ca">
+
+    <button id="generateBtn" type="submit">Generate card</button>
+
+    <div class="downloads">
+      <button type="button" id="downloadPng" disabled onclick="downloadPNG()">Download PNG</button>
+      <button type="button" id="downloadPdf" disabled onclick="downloadPDF()">Download PDF</button>
+    </div>
+
+    <div class="template-box">
+      <p>Optional: upload a blank Canva-exported PNG background to use the exact official artwork. Text and QR placement still follow the Canva template coordinates.</p>
+      <input type="file" id="templateFile" accept="image/png,image/jpeg" onchange="loadTemplate(this)">
+    </div>
+  </form>
+
+  <section class="preview">
+    <canvas id="cardCanvas" width="1350" height="2400"></canvas>
+  </section>
+</main>
+
+<script>
+const COMPANY = "Alberta Construction Safety Association";
+const ADDRESS_VCARD = "225 Parsons Rd SW, Edmonton Alberta T6X 0W6";
+const WEBSITE = "https://www.youracsa.ca";
+const LINKEDIN = "https://www.linkedin.com/company/alberta-construction-safety-association";
+const X_URL = "https://x.com/OfficialACSA";
+const FACEBOOK = "https://www.facebook.com/ACSA.safety";
+
+const SCALE = 3;
+const W = 450;
+const H = 800;
+const CANVA_DESIGN_ID = "DAHBLDtQgGs";
+const FONT_FAMILY = "Montserrat, Arial, sans-serif";
+const BASE_TEMPLATE_URL = "canva_base_template.png";
+const NAVY = "#122a4c";
+const NAVY_DARK_1 = "#0e223f";
+const NAVY_DARK_2 = "#0b1c35";
+const NAVY_DARK_3 = "#09172c";
+const GOLD = "#f2b32a";
+const WHITE = "#ffffff";
+const DARK = "#1f2937";
+
+const LAYOUT = {
+  name: { top: 156.512, left: 0, width: 450, height: 48, size: 32, weight: 600, color: GOLD },
+  title: { top: 201.512, left: -0.017, width: 450, height: 24.733, size: 17, weight: 400, color: WHITE },
+  phone: { top: 264.480, left: 0, width: 450, height: 24.733, size: 17, weight: 400, color: WHITE },
+  email: { top: 295.832, left: 0, width: 450, height: 24.733, size: 17, weight: 400, color: WHITE },
+  address: { top: 425.287, left: 0, width: 450, height: 53.733, size: 16, weight: 400, color: WHITE, lineHeight: 27 },
+  qr: { top: 543.817, left: 119.408, width: 211.183, height: 211.183 },
+  scan: { top: 761, left: 129.512, width: 190.977, height: 22.267, size: 16, weight: 400, color: DARK }
+};
+
+const canvas = document.getElementById("cardCanvas");
+const ctx = canvas.getContext("2d");
+const baseTemplateImg = new Image();
+let customTemplateImg = null;
+let baseTemplateReady = false;
+let currentName = "business_card";
+
+baseTemplateImg.onload = () => {
+  baseTemplateReady = true;
+  generate();
+};
+baseTemplateImg.src = BASE_TEMPLATE_URL;
+
+function val(id) {
+  return document.getElementById(id).value.trim();
+}
+
+function escapeVcard(text) {
+  return (text || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,");
+}
+
+function buildVcard(first, last, title, phone, email) {
+  const full = `${first} ${last}`.trim();
+  const lines = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `N:${escapeVcard(last)};${escapeVcard(first)};;;`,
+    `FN:${escapeVcard(full)}`,
+    `ORG:${escapeVcard(COMPANY)}`
+  ];
+  if (title) lines.push(`TITLE:${escapeVcard(title)}`);
+  if (phone) lines.push(`TEL;TYPE=CELL:${escapeVcard(phone)}`);
+  if (email) lines.push(`EMAIL;TYPE=WORK:${escapeVcard(email)}`);
+  lines.push(
+    `ADR;TYPE=WORK:;;${escapeVcard(ADDRESS_VCARD)};;;;`,
+    `URL:${escapeVcard(WEBSITE)}`,
+    `URL:${escapeVcard(LINKEDIN)}`,
+    `URL:${escapeVcard(X_URL)}`,
+    `URL:${escapeVcard(FACEBOOK)}`,
+    "END:VCARD"
+  );
+  return lines.join("\n");
+}
+
+function setFont(weight, size) {
+  ctx.font = `${weight} ${size * SCALE}px ${FONT_FAMILY}`;
+}
+
+function fitSize(text, box) {
+  let size = box.size;
+  while (size > 9) {
+    setFont(box.weight, size);
+    if (ctx.measureText(text).width <= (box.width - 20) * SCALE) return size;
+    size -= .5;
+  }
+  return size;
+}
+
+function drawTextBox(text, box) {
+  const size = fitSize(text, box);
+  setFont(box.weight, size);
+  ctx.fillStyle = box.color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.fillText(text, (box.left + box.width / 2) * SCALE, box.top * SCALE);
+}
+
+function drawQR(text) {
+  const qr = qrcode(0, "M");
+  qr.addData(text);
+  qr.make();
+  const count = qr.getModuleCount();
+  const box = LAYOUT.qr;
+  const x0 = box.left * SCALE;
+  const y0 = box.top * SCALE;
+  const size = box.width * SCALE;
+  const cell = size / count;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(x0 - 5 * SCALE, y0 - 5 * SCALE, size + 10 * SCALE, size + 10 * SCALE);
+  ctx.fillStyle = "#000000";
+  for (let row = 0; row < count; row++) {
+    for (let col = 0; col < count; col++) {
+      if (qr.isDark(row, col)) {
+        ctx.fillRect(
+          Math.floor(x0 + col * cell),
+          Math.floor(y0 + row * cell),
+          Math.ceil(cell),
+          Math.ceil(cell)
+        );
+      }
+    }
+  }
+}
+
+async function generate() {
+  const first = val("first");
+  const last = val("last");
+  const title = val("title");
+  const phone = val("phone");
+  const email = val("email");
+  await document.fonts.ready;
+  ctx.clearRect(0, 0, W * SCALE, H * SCALE);
+  const activeTemplate = customTemplateImg || (baseTemplateReady ? baseTemplateImg : null);
+  if (activeTemplate) {
+    ctx.drawImage(activeTemplate, 0, 0, W * SCALE, H * SCALE);
+  } else {
+    ctx.fillStyle = WHITE;
+    ctx.fillRect(0, 0, W * SCALE, H * SCALE);
+  }
+  drawTextBox(`${first} ${last}`.trim(), LAYOUT.name);
+  drawTextBox(title, LAYOUT.title);
+  drawTextBox(phone, LAYOUT.phone);
+  drawTextBox(email, LAYOUT.email);
+  drawQR(buildVcard(first, last, title, phone, email));
+  currentName = `${first}_${last}_business_card`.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_-]/g, "");
+  document.getElementById("downloadPng").disabled = false;
+  document.getElementById("downloadPdf").disabled = false;
+}
+
+function downloadPNG() {
+  const link = document.createElement("a");
+  link.download = `${currentName}.png`;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [W, H] });
+  pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, W, H);
+  pdf.save(`${currentName}.pdf`);
+}
+
+function loadTemplate(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = event => {
+    const img = new Image();
+    img.onload = () => {
+      customTemplateImg = img;
+      generate();
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+generate();
+</script>
+</body>
+</html>
