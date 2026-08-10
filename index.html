@@ -10,6 +10,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
+  @font-face {
+    font-family: "Branding";
+    src: url("Branding-Semilight.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Branding";
+    src: url("Branding-Semibold.otf") format("opentype");
+    font-weight: 600;
+    font-style: normal;
+  }
   :root {
     --navy: #122a4c;
     --gold: #f2b32a;
@@ -182,8 +194,8 @@ const SCALE = 3;
 const W = 450;
 const H = 800;
 const CANVA_DESIGN_ID = "DAHBLDtQgGs";
-const FONT_FAMILY = "Poppins, Montserrat, Arial, sans-serif";
-const BASE_TEMPLATE_URL = "ACSA Business Card Template.png";
+const FONT_FAMILY = "Branding, Poppins, Montserrat, Arial, sans-serif";
+const BASE_TEMPLATE_URL = "canva_base_template.png";
 const NAVY = "#122a4c";
 const NAVY_DARK_1 = "#0e223f";
 const NAVY_DARK_2 = "#0b1c35";
@@ -306,6 +318,10 @@ async function generate() {
   const title = val("title");
   const phone = val("phone");
   const email = val("email");
+  await Promise.all([
+    document.fonts.load(`600 ${30 * SCALE}px Branding`),
+    document.fonts.load(`400 ${16 * SCALE}px Branding`)
+  ]).catch(() => {});
   await document.fonts.ready;
   ctx.clearRect(0, 0, W * SCALE, H * SCALE);
   const activeTemplate = customTemplateImg || (baseTemplateReady ? baseTemplateImg : null);
