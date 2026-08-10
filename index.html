@@ -6,7 +6,7 @@
 <title>ACSA Digital Business Card Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -182,8 +182,8 @@ const SCALE = 3;
 const W = 450;
 const H = 800;
 const CANVA_DESIGN_ID = "DAHBLDtQgGs";
-const FONT_FAMILY = "Montserrat, Arial, sans-serif";
-const BASE_TEMPLATE_URL = "ACSA Business Card Template.png";
+const FONT_FAMILY = "Poppins, Montserrat, Arial, sans-serif";
+const BASE_TEMPLATE_URL = "canva_base_template.png";
 const NAVY = "#122a4c";
 const NAVY_DARK_1 = "#0e223f";
 const NAVY_DARK_2 = "#0b1c35";
@@ -193,10 +193,10 @@ const WHITE = "#ffffff";
 const DARK = "#1f2937";
 
 const LAYOUT = {
-  name: { top: 156.512, left: 0, width: 450, height: 48, size: 32, weight: 600, color: GOLD },
-  title: { top: 201.512, left: -0.017, width: 450, height: 24.733, size: 17, weight: 400, color: WHITE },
-  phone: { top: 264.480, left: 0, width: 450, height: 24.733, size: 17, weight: 400, color: WHITE },
-  email: { top: 295.832, left: 0, width: 450, height: 24.733, size: 17, weight: 400, color: WHITE },
+  name: { top: 156.512, left: 0, width: 450, height: 48, size: 30, weight: 600, color: GOLD },
+  title: { top: 201.512, left: -0.017, width: 450, height: 24.733, size: 16, weight: 400, color: WHITE },
+  phone: { top: 264.480, left: 0, width: 450, height: 24.733, size: 16, weight: 400, color: WHITE },
+  email: { top: 295.832, left: 0, width: 450, height: 24.733, size: 16, weight: 400, color: WHITE },
   address: { top: 425.287, left: 0, width: 450, height: 53.733, size: 16, weight: 400, color: WHITE, lineHeight: 27 },
   qr: { top: 543.817, left: 119.408, width: 211.183, height: 211.183 },
   scan: { top: 761, left: 129.512, width: 190.977, height: 22.267, size: 16, weight: 400, color: DARK }
