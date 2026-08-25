@@ -149,38 +149,28 @@
 <header>
   <h1>ACSA Digital Business Card Generator</h1>
 </header>
-
 <main>
   <form class="panel" onsubmit="event.preventDefault(); generate();">
     <label for="first">First name</label>
     <input type="text" id="first" required value="Normel">
-
     <label for="last">Last name</label>
     <input type="text" id="last" required value="Martinez">
-
     <label for="title">Job title</label>
     <input type="text" id="title" required value="Strategy and Reputation Director">
-
     <label for="phone">Phone number</label>
     <input type="text" id="phone" required value="780-453-3311 ext.1914">
-
     <label for="email">Email address</label>
     <input type="email" id="email" required value="nmartinez@youracsa.ca">
-
     <button id="generateBtn" type="submit">Generate card</button>
-
     <div class="downloads">
       <button type="button" id="downloadPng" disabled onclick="downloadPNG()">Download PNG</button>
       <button type="button" id="downloadPdf" disabled onclick="downloadPDF()">Download PDF</button>
     </div>
-
   </form>
-
   <section class="preview">
     <canvas id="cardCanvas" width="1350" height="2400"></canvas>
   </section>
 </main>
-
 <script>
 const COMPANY = "Alberta Construction Safety Association";
 const ADDRESS_VCARD = "225 Parsons Rd SW, Edmonton Alberta T6X 0W6";
@@ -188,7 +178,6 @@ const WEBSITE = "https://www.youracsa.ca";
 const LINKEDIN = "https://www.linkedin.com/company/alberta-construction-safety-association";
 const X_URL = "https://x.com/OfficialACSA";
 const FACEBOOK = "https://www.facebook.com/ACSA.safety";
-
 const SCALE = 3;
 const W = 450;
 const H = 800;
@@ -202,7 +191,6 @@ const NAVY_DARK_3 = "#09172c";
 const GOLD = "#f2b32a";
 const WHITE = "#ffffff";
 const DARK = "#1f2937";
-
 const LAYOUT = {
   name: { top: 156.512, left: 0, width: 450, height: 48, size: 40, weight: 600, color: GOLD },
   title: { top: 201.512, left: -0.017, width: 450, height: 24.733, size: 22, weight: 400, color: WHITE },
@@ -212,24 +200,20 @@ const LAYOUT = {
   qr: { top: 543.817, left: 119.408, width: 211.183, height: 211.183 },
   scan: { top: 761, left: 129.512, width: 190.977, height: 22.267, size: 16, weight: 400, color: DARK }
 };
-
 const canvas = document.getElementById("cardCanvas");
 const ctx = canvas.getContext("2d");
 const baseTemplateImg = new Image();
 let customTemplateImg = null;
 let baseTemplateReady = false;
 let currentName = "business_card";
-
 baseTemplateImg.onload = () => {
   baseTemplateReady = true;
   generate();
 };
 baseTemplateImg.src = BASE_TEMPLATE_URL;
-
 function val(id) {
   return document.getElementById(id).value.trim();
 }
-
 function escapeVcard(text) {
   return (text || "")
     .replace(/\\/g, "\\\\")
@@ -237,7 +221,6 @@ function escapeVcard(text) {
     .replace(/;/g, "\\;")
     .replace(/,/g, "\\,");
 }
-
 function buildVcard(first, last, title, phone, email) {
   const full = `${first} ${last}`.trim();
   const lines = [
@@ -260,11 +243,9 @@ function buildVcard(first, last, title, phone, email) {
   );
   return lines.join("\n");
 }
-
 function setFont(weight, size) {
   ctx.font = `${weight} ${size * SCALE}px ${FONT_FAMILY}`;
 }
-
 function fitSize(text, box) {
   let size = box.size;
   while (size > 9) {
@@ -274,7 +255,6 @@ function fitSize(text, box) {
   }
   return size;
 }
-
 function drawTextBox(text, box) {
   const size = fitSize(text, box);
   setFont(box.weight, size);
@@ -283,7 +263,15 @@ function drawTextBox(text, box) {
   ctx.textBaseline = "top";
   ctx.fillText(text, (box.left + box.width / 2) * SCALE, box.top * SCALE);
 }
-
+function drawLines(lines, box) {
+  setFont(box.weight, box.size);
+  ctx.fillStyle = box.color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  lines.forEach((line, i) => {
+    ctx.fillText(line, (box.left + box.width / 2) * SCALE, (box.top + i * box.lineHeight) * SCALE);
+  });
+}
 function drawQR(text) {
   const qr = qrcode(0, "M");
   qr.addData(text);
@@ -310,7 +298,6 @@ function drawQR(text) {
     }
   }
 }
-
 async function generate() {
   const first = val("first");
   const last = val("last");
@@ -334,26 +321,24 @@ async function generate() {
   drawTextBox(title, LAYOUT.title);
   drawTextBox(phone, LAYOUT.phone);
   drawTextBox(email, LAYOUT.email);
+  drawLines(["225 Parsons Rd SW", "Edmonton, Alberta T6X 0W6"], LAYOUT.address);
   drawQR(buildVcard(first, last, title, phone, email));
   currentName = `${first}_${last}_business_card`.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_-]/g, "");
   document.getElementById("downloadPng").disabled = false;
   document.getElementById("downloadPdf").disabled = false;
 }
-
 function downloadPNG() {
   const link = document.createElement("a");
   link.download = `${currentName}.png`;
   link.href = canvas.toDataURL("image/png");
   link.click();
 }
-
 function downloadPDF() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [W, H] });
   pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, W, H);
   pdf.save(`${currentName}.pdf`);
 }
-
 function loadTemplate(input) {
   const file = input.files[0];
   if (!file) return;
@@ -368,7 +353,6 @@ function loadTemplate(input) {
   };
   reader.readAsDataURL(file);
 }
-
 generate();
 </script>
 </body>
